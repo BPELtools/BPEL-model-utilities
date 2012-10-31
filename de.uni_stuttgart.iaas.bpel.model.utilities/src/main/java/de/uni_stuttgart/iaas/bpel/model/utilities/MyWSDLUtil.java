@@ -1,4 +1,4 @@
-package org.bpel4chor.utils;
+package de.uni_stuttgart.iaas.bpel.model.utilities;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -195,11 +195,11 @@ public class MyWSDLUtil extends WSDLUtil {
 
 			// read the wsdl anyway
 			if (isAbsolutePath(imp.getLocation())) {
-				dfn = BPEL4ChorReader.readWSDL(imp.getLocation());
+				dfn = readWSDL(imp.getLocation());
 			} else {
 				int endIndex = bpelURIString.lastIndexOf(process.getName() + ".bpel");
 				String wsdlURIString = bpelURIString.substring(0, endIndex) + imp.getLocation();
-				dfn = BPEL4ChorReader.readWSDL(wsdlURIString);
+				dfn = readWSDL(wsdlURIString);
 			}
 
 			// test whether it is the one we want
@@ -249,4 +249,31 @@ public class MyWSDLUtil extends WSDLUtil {
 		args.put("", "");
 		resource.save(System.out, args);
 	}
+	
+	/**
+	 * Read the WSDL document into a definition
+	 * 
+	 * @param wsdlURI The WSDL URI
+	 * @return
+	 * @throws WSDLException
+	 * @throws IOException
+	 */
+	public static Definition readWSDL(String wsdlURI) throws WSDLException, IOException {
+		
+		if ((wsdlURI == null) || wsdlURI.isEmpty()) {
+			throw new IllegalArgumentException();
+		}
+		
+		if (!wsdlURI.endsWith(".wsdl")) {
+			throw new IllegalArgumentException("invalid wsdl uri. " + wsdlURI);
+		}
+		
+		ResourceSet rs = new ResourceSetImpl();
+		rs.getResourceFactoryRegistry().getExtensionToFactoryMap().put("wsdl", new WSDLResourceFactoryImpl());
+		Resource resource = rs.createResource(URI.createFileURI(wsdlURI));
+		resource.load(null);
+		Definition root = (Definition) resource.getContents().iterator().next();
+		return root;
+	}
+
 }

@@ -1,4 +1,4 @@
-package org.bpel4chor.utils;
+package de.uni_stuttgart.iaas.bpel.model.utilities;
 
 import java.util.Iterator;
 import java.util.List;

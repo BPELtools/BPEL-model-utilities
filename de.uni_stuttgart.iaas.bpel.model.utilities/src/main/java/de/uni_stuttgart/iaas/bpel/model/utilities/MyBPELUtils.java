@@ -1,4 +1,4 @@
-package org.bpel4chor.utils;
+package de.uni_stuttgart.iaas.bpel.model.utilities;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -6,7 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.bpel4chor.utils.exceptions.AmbiguousPropertyForLinkException;
+import javax.wsdl.WSDLException;
+
 import org.eclipse.bpel.model.Activity;
 import org.eclipse.bpel.model.BPELPlugin;
 import org.eclipse.bpel.model.CorrelationSet;
@@ -28,8 +29,11 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.wst.wsdl.Definition;
 import org.eclipse.wst.wsdl.internal.util.WSDLResourceFactoryImpl;
 import org.eclipse.xsd.util.XSDResourceFactoryImpl;
+
+import de.uni_stuttgart.iaas.bpel.model.utilities.exceptions.AmbiguousPropertyForLinkException;
 
 /**
  * MyBPELUtils is useful in the BPEL world, e.g. to find stuffs or resolve
@@ -353,4 +357,5 @@ public class MyBPELUtils extends BPELUtils {
 		}
 		return null;
 	}
+	
 }

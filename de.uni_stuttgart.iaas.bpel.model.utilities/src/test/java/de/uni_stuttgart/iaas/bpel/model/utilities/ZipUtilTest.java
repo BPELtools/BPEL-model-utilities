@@ -1,4 +1,4 @@
-package org.bpel4chor.model.utils;
+package de.uni_stuttgart.iaas.bpel.model.utilities;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,7 +10,6 @@ import java.util.zip.ZipFile;
 
 import junit.framework.Assert;
 
-import org.bpel4chor.utils.ZipUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
