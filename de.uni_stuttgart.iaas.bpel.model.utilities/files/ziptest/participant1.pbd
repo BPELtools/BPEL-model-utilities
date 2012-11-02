@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process
+    abstractProcessProfile="urn:HPI_IAAS:choreography:profile:2006/12"
+    exitOnStandardFault="yes" name="participant1"
+    suppressJoinFailure="yes"
+    targetNamespace="http://www.iaas.uni-stuttgart.de"
+    xmlns:ns="http://www.iaas.uni-stuttgart.de" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <import importType="http://schemas.xmlsoap.org/wsdl/"
+        location="participant2.wsdl" namespace="http://www.iaas.uni-stuttgart.de"/>
+    <import importType="http://schemas.xmlsoap.org/wsdl/"
+        location="participant1.wsdl" namespace="http://www.iaas.uni-stuttgart.de"/>
+    <partnerLinks>
+        <partnerLink initializePartnerRole="no"
+            myRole="OrderProcessProvider" name="orderingPL" partnerLinkType="ns:OrderingProcessSimple1PT"/>
+        <partnerLink name="participant1participant2PL"
+            partnerLinkType="ns:participant1participant2PLT" partnerRole="participant1participant2Role"/>
+    </partnerLinks>
+    <variables>
+        <variable name="globalCorrel" type="xsd:string"/>
+        <variable messageType="ns:orderRequest" name="orderInfo"/>
+        <variable messageType="ns:controlLinkMessage" name="variableTrueAndCorrel"/>
+        <variable messageType="ns:controlLinkMessage" name="variableFalseAndCorrel"/>
+        <variable
+            messageType="ns:participant1participant2orderInfoSQMessage" name="ReceiveA-CFU"/>
+        <variable
+            messageType="ns:participant1participant2orderInfoSQMessage" name="ReceiveA-CFUFH"/>
+    </variables>
+    <correlationSets>
+        <correlationSet name="CorrelationSet" properties="ns:correlProperty"/>
+    </correlationSets>
+    <flow name="Flow">
+        <links>
+            <link name="ReceiveA2AssignB"/>
+            <link name="ReceiveA2LRorderInfoReceiveA-CFUScope"/>
+        </links>
+        <sequence name="InitialReceiveSequence">
+            <sources>
+                <source linkName="ReceiveA2AssignB"/>
+                <source linkName="ReceiveA2LRorderInfoReceiveA-CFUScope">
+                    <transitionCondition><![CDATA[true()]]></transitionCondition>
+                </source>
+            </sources>
+            <receive name="ReceiveA" variable="orderInfo" wsu:id="gHLW">
+                <sources/>
+                <correlations>
+                    <correlation initiate="yes" set="CorrelationSet"/>
+                </correlations>
+            </receive>
+            <assign name="Assign4GlobalVar" validate="no">
+                <copy>
+                    <from property="ns:correlProperty" variable="orderInfo"/>
+                    <to variable="globalCorrel"/>
+                </copy>
+            </assign>
+        </sequence>
+        <scope name="sendingBlockScope">
+            <targets>
+                <target linkName="ReceiveA2AssignB"/>
+            </targets>
+            <faultHandlers>
+                <catch faultName="ns:joinFailure">
+                    <sequence name="sequenceSendFalse">
+                        <assign name="assignSendingBlockVariable" validate="no">
+                            <copy>
+                                <from><![CDATA[false()]]></from>
+                                <to part="status" variable="variableFalseAndCorrel"/>
+                            </copy>
+                            <copy>
+                                <from variable="globalCorrel"/>
+                                <to part="correlation" variable="variableFalseAndCorrel"/>
+                            </copy>
+                        </assign>
+                        <invoke inputVariable="variableFalseAndCorrel"
+                            name="ReceiveA2AssignBInvokeFalse"
+                            suppressJoinFailure="yes" wsu:id="jqCv"/>
+                    </sequence>
+                </catch>
+            </faultHandlers>
+            <sequence name="sequenceSendTrue">
+                <assign name="assignSendingBlockVariable" validate="no">
+                    <copy>
+                        <from><![CDATA[true()]]></from>
+                        <to part="status" variable="variableTrueAndCorrel"/>
+                    </copy>
+                    <copy>
+                        <from variable="globalCorrel"/>
+                        <to part="correlation" variable="variableTrueAndCorrel"/>
+                    </copy>
+                </assign>
+                <invoke inputVariable="variableTrueAndCorrel"
+                    name="ReceiveA2AssignBInvokeTrue"
+                    suppressJoinFailure="no" wsu:id="QhpW"/>
+            </sequence>
+        </scope>
+        <scope name="LRorderInfoReceiveA-CFUScope">
+            <targets>
+                <target linkName="ReceiveA2LRorderInfoReceiveA-CFUScope"/>
+            </targets>
+            <faultHandlers>
+                <catch faultName="ns:joinFailure">
+                    <sequence name="LRorderInfoReceiveA-CFUFH">
+                        <assign name="AssignorderInfoReceiveA-CFU" validate="no">
+                            <copy>
+                                <from><![CDATA[false()]]></from>
+                                <to part="status" variable="ReceiveA-CFUFH"/>
+                            </copy>
+                            <copy>
+                                <from variable="globalCorrel"/>
+                                <to part="correlation" variable="ReceiveA-CFUFH"/>
+                            </copy>
+                        </assign>
+                        <invoke inputVariable="ReceiveA-CFUFH"
+                            name="SendorderInfoReceiveA-CFUFH" wsu:id="eLef"/>
+                    </sequence>
+                </catch>
+            </faultHandlers>
+            <sequence name="LRorderInfoReceiveA-CFU">
+                <assign name="AssignorderInfoReceiveA-CFU" validate="no">
+                    <copy>
+                        <from><![CDATA[true()]]></from>
+                        <to part="status" variable="ReceiveA-CFU"/>
+                    </copy>
+                    <copy>
+                        <from variable="globalCorrel"/>
+                        <to part="correlation" variable="ReceiveA-CFU"/>
+                    </copy>
+                    <copy>
+                        <from variable="orderInfo"/>
+                        <to part="data" variable="ReceiveA-CFU"/>
+                    </copy>
+                </assign>
+                <invoke inputVariable="ReceiveA-CFU"
+                    name="SendorderInfoReceiveA-CFU"
+                    suppressJoinFailure="no" wsu:id="WKBb"/>
+            </sequence>
+        </scope>
+    </flow>
+</process>

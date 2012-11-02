@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<topology name="OrderingProcessSimple1Topology" targetNamespace="urn:HPI_IAAS:choreography:schemas:choreography:topology:2006/12" xmlns:cns="http://www.iaas.uni-stuttgart.de">
+	<participantTypes>
+		<participantType name="participant1Type" participantBehaviorDescription="cns:participant1"/>
+		<participantType name="participant2Type" participantBehaviorDescription="cns:participant2"/>
+	</participantTypes>
+
+	<participants>
+		<participant name="participant1" type="participant1Type" selects="participant2"/>
+		<participant name="participant2" type="participant2Type"/>
+	</participants>
+
+	<messageLinks>
+		<messageLink name="controlLinkMessageLink" messageName="controlLinkMessage" sender="participant1" sendActivity="ReceiveA2AssignBInvokeTrue" receiver="participant2" receiveActivity="fromparticipant1"/>
+		<messageLink name="controlLinkMessageLink1" messageName="controlLinkMessage" sender="participant1" sendActivity="ReceiveA2AssignBInvokeFalse" receiver="participant2" receiveActivity="fromparticipant1"/>
+		<messageLink name="participant1participant2orderInfoSQMessageLink" messageName="participant1participant2orderInfoSQMessage" sender="participant1" sendActivity="SendorderInfoReceiveA-CFU" receiver="participant2" receiveActivity="ReceiveReceiveA-CFU"/>
+		<messageLink name="participant1participant2orderInfoSQMessageLink1" messageName="participant1participant2orderInfoSQMessage" sender="participant1" sendActivity="SendorderInfoReceiveA-CFUFH" receiver="participant2" receiveActivity="ReceiveReceiveA-CFU"/>
+	</messageLinks>
+
+</topology>

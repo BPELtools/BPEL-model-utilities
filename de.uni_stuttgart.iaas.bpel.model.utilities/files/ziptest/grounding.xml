@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grounding topology="tns:OrderingProcessSimple1Topology" targetNamespace="urn:HPI_IAAS:choreography:schemas:choreography:grounding:2006/12" xmlns:cns="http://www.iaas.uni-stuttgart.de" xmlns:tns="urn:HPI_IAAS:choreography:schemas:choreography:topology:2006/12">
+	<messageLinks>
+		<messageLink name="controlLinkMessageLink" portType="cns:participant1participant2PT" operation="ReceiveA2AssignBOperation"/>
+		<messageLink name="controlLinkMessageLink1" portType="cns:participant1participant2PT" operation="ReceiveA2AssignBOperation"/>
+		<messageLink name="participant1participant2orderInfoSQMessageLink" portType="cns:participant1participant2PT" operation="participant1participant2orderInfoReceiveA-CFUOP"/>
+		<messageLink name="participant1participant2orderInfoSQMessageLink1" portType="cns:participant1participant2PT" operation="participant1participant2orderInfoReceiveA-CFUOP"/>
+	</messageLinks>
+
+
+	<properties>
+		<property name="correlProperty" WSDLproperty="cns:correlProperty"/>
+	</properties>
+
+</grounding>
