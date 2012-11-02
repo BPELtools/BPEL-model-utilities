@@ -498,6 +498,11 @@ public class FragmentDuplicator {
 		Links links = BPELFactoryImpl.eINSTANCE.createLinks();
 		newFlow.setLinks(links);
 		
+		for (Link link : act.getLinks().getChildren()) {
+			Link newLink = FragmentDuplicator.copyLink(link);
+			links.getChildren().add(newLink);
+		}
+		
 		FragmentDuplicator.copyStandardElements(act, newFlow);
 		return newFlow;
 	}
