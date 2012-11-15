@@ -6,9 +6,14 @@ import java.util.List;
 import org.eclipse.bpel.model.Activity;
 import org.eclipse.bpel.model.Catch;
 import org.eclipse.bpel.model.CatchAll;
+import org.eclipse.bpel.model.CompensationHandler;
+import org.eclipse.bpel.model.EventHandler;
+import org.eclipse.bpel.model.FaultHandler;
 import org.eclipse.bpel.model.OnAlarm;
 import org.eclipse.bpel.model.OnEvent;
 import org.eclipse.bpel.model.Process;
+import org.eclipse.bpel.model.Scope;
+import org.eclipse.bpel.model.TerminationHandler;
 import org.eclipse.emf.ecore.EObject;
 
 /**
@@ -38,6 +43,12 @@ public class ExtendedActivityIterator extends ActivityIterator {
 	/** List of possible EventHandler Events */
 	protected List<OnEvent> eventList = new ArrayList<OnEvent>();
 	
+	/** Possible CompensationHandler */
+	protected CompensationHandler ch;
+	
+	/** Possible TerminationHandler */
+	protected TerminationHandler th;
+	
 	protected Activity lastActivity;
 	
 	protected EObject lastActContainer;
@@ -66,6 +77,9 @@ public class ExtendedActivityIterator extends ActivityIterator {
 				this.eventList.addAll(this.processStartPoint.getEventHandlers().getEvents());
 			}
 		}
+		
+		// // Check if we have a CH
+		// if((this.processStartPoint.get))
 		
 		// Now check if we have FHs or EHs and set the activity iterator to the
 		// first one
@@ -173,5 +187,42 @@ public class ExtendedActivityIterator extends ActivityIterator {
 			}
 			return next;
 		}
+	}
+	
+	@Override
+	protected void addChildren(Scope act) {
+		super.addChildren(act);
+		
+		// Get CatchAll FH
+		FaultHandler fhExt = act.getFaultHandlers();
+		if (fhExt != null) {
+			if (fhExt.getCatchAll() != null) {
+				this.activityList.add(0, fhExt.getCatchAll().getActivity());
+			}
+		}
+		
+		// Get EHs
+		EventHandler eh = act.getEventHandlers();
+		if (eh != null) {
+			for (OnAlarm onAlarm : eh.getAlarm()) {
+				this.activityList.add(0, onAlarm.getActivity());
+			}
+			for (OnEvent onEvent : eh.getEvents()) {
+				this.activityList.add(0, onEvent.getActivity());
+			}
+		}
+		
+		// Get TH
+		TerminationHandler th = act.getTerminationHandler();
+		if (th != null) {
+			this.activityList.add(0, th.getActivity());
+		}
+		
+		// Get CH
+		CompensationHandler ch = act.getCompensationHandler();
+		if (ch != null) {
+			this.activityList.add(0, ch.getActivity());
+		}
+		
 	}
 }

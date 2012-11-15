@@ -2,6 +2,7 @@ package de.uni_stuttgart.iaas.bpel.model.utilities;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -9,6 +10,8 @@ import org.apache.log4j.Logger;
 import org.eclipse.bpel.model.Activity;
 import org.eclipse.bpel.model.Assign;
 import org.eclipse.bpel.model.BPELFactory;
+import org.eclipse.bpel.model.Catch;
+import org.eclipse.bpel.model.CatchAll;
 import org.eclipse.bpel.model.Compensate;
 import org.eclipse.bpel.model.CompensateScope;
 import org.eclipse.bpel.model.Condition;
@@ -16,10 +19,14 @@ import org.eclipse.bpel.model.Copy;
 import org.eclipse.bpel.model.Correlation;
 import org.eclipse.bpel.model.CorrelationSet;
 import org.eclipse.bpel.model.Correlations;
+import org.eclipse.bpel.model.Documentation;
 import org.eclipse.bpel.model.Empty;
+import org.eclipse.bpel.model.EventHandler;
 import org.eclipse.bpel.model.Exit;
 import org.eclipse.bpel.model.Expression;
 import org.eclipse.bpel.model.ExtensionActivity;
+import org.eclipse.bpel.model.Extensions;
+import org.eclipse.bpel.model.FaultHandler;
 import org.eclipse.bpel.model.Flow;
 import org.eclipse.bpel.model.ForEach;
 import org.eclipse.bpel.model.From;
@@ -28,6 +35,8 @@ import org.eclipse.bpel.model.Invoke;
 import org.eclipse.bpel.model.Link;
 import org.eclipse.bpel.model.Links;
 import org.eclipse.bpel.model.MessageExchange;
+import org.eclipse.bpel.model.OnAlarm;
+import org.eclipse.bpel.model.OnEvent;
 import org.eclipse.bpel.model.OpaqueActivity;
 import org.eclipse.bpel.model.PartnerLink;
 import org.eclipse.bpel.model.Pick;
@@ -532,6 +541,82 @@ public class FragmentDuplicator {
 	}
 	
 	/**
+	 * Copy the {@link Catch} {@link FaultHandler}
+	 * 
+	 * @param oldCatch
+	 * @return
+	 */
+	public static Catch copyCatch(Catch oldCatch) {
+		Catch newCatch = BPELFactory.eINSTANCE.createCatch();
+		newCatch.setDocumentation(oldCatch.getDocumentation());
+		newCatch.setElement(oldCatch.getElement());
+		newCatch.setEnclosingDefinition(oldCatch.getEnclosingDefinition());
+		newCatch.setFaultElement(oldCatch.getFaultElement());
+		newCatch.setFaultMessageType(oldCatch.getFaultMessageType());
+		newCatch.setFaultName(oldCatch.getFaultName());
+		newCatch.setFaultVariable(oldCatch.getFaultVariable());
+		return newCatch;
+	}
+	
+	/**
+	 * Copy the {@link CatchAll} {@link FaultHandler}
+	 * 
+	 * @param oldCatchAll
+	 * @return
+	 */
+	public static CatchAll copyCatchAll(CatchAll oldCatchAll) {
+		CatchAll newCatchAll = BPELFactory.eINSTANCE.createCatchAll();
+		newCatchAll.setDocumentation(oldCatchAll.getDocumentation());
+		newCatchAll.setDocumentationElement(oldCatchAll.getDocumentationElement());
+		newCatchAll.setElement(oldCatchAll.getElement());
+		newCatchAll.setEnclosingDefinition(oldCatchAll.getEnclosingDefinition());
+		return newCatchAll;
+	}
+	
+	/**
+	 * Copy the {@link OnAlarm} {@link EventHandler}
+	 * 
+	 * @param oldOnAlarm
+	 * @return
+	 */
+	public static OnAlarm copyOnAlarm(OnAlarm oldOnAlarm) {
+		OnAlarm newAlarm = BPELFactory.eINSTANCE.createOnAlarm();
+		newAlarm.setDocumentation(oldOnAlarm.getDocumentation());
+		newAlarm.setDocumentationElement(oldOnAlarm.getDocumentationElement());
+		newAlarm.setElement(oldOnAlarm.getElement());
+		newAlarm.setEnclosingDefinition(oldOnAlarm.getEnclosingDefinition());
+		newAlarm.setFor(oldOnAlarm.getFor());
+		newAlarm.setRepeatEvery(oldOnAlarm.getRepeatEvery());
+		newAlarm.setUntil(oldOnAlarm.getUntil());
+		return newAlarm;
+	}
+	
+	/**
+	 * Copy the {@link OnEvent} {@link EventHandler}
+	 * 
+	 * @param oldOnEvent
+	 * @return
+	 */
+	public static OnEvent copyOnEvent(OnEvent oldOnEvent) {
+		OnEvent newEvent = BPELFactory.eINSTANCE.createOnEvent();
+		newEvent.setCorrelations(oldOnEvent.getCorrelations());
+		newEvent.setCorrelationSets(oldOnEvent.getCorrelationSets());
+		newEvent.setDocumentation(oldOnEvent.getDocumentation());
+		newEvent.setDocumentationElement(oldOnEvent.getDocumentationElement());
+		newEvent.setElement(oldOnEvent.getElement());
+		newEvent.setEnclosingDefinition(oldOnEvent.getEnclosingDefinition());
+		newEvent.setFromParts(oldOnEvent.getFromParts());
+		newEvent.setMessageExchange(oldOnEvent.getMessageExchange());
+		newEvent.setMessageType(oldOnEvent.getMessageType());
+		newEvent.setOperation(oldOnEvent.getOperation());
+		newEvent.setPartnerLink(oldOnEvent.getPartnerLink());
+		newEvent.setPortType(oldOnEvent.getPortType());
+		newEvent.setVariable(oldOnEvent.getVariable());
+		newEvent.setXSDElement(oldOnEvent.getXSDElement());
+		return newEvent;
+	}
+	
+	/**
 	 * <B>NOTE</B>: The OnMessage and OnAlarm Branches in Pick do not have name,
 	 * but they will contain a <b style=color:blue>wsu:id</b>, it must be copied
 	 * too.
@@ -556,7 +641,10 @@ public class FragmentDuplicator {
 	}
 	
 	public static OpaqueActivity copyOpaqueActivity(OpaqueActivity act) {
-		throw new IllegalStateException("copyOpaqueActivity is not yet implemented");
+		OpaqueActivity newAct = BPELFactory.eINSTANCE.createOpaqueActivity();
+		newAct.setName(act.getName());
+		FragmentDuplicator.copyStandardElements(act, newAct);
+		return newAct;
 	}
 	
 	public static ForEach copyForEach(ForEach act) {
@@ -569,6 +657,51 @@ public class FragmentDuplicator {
 	
 	public static Validate copyValidate(Validate act) {
 		throw new IllegalStateException("copyValidate is not yet implemented");
+	}
+	
+	/**
+	 * Copy the given extensions
+	 * 
+	 * @param ext The {@link Extensions} to be copied
+	 * @return The new {@link Extensions}
+	 */
+	@SuppressWarnings("unchecked")
+	public static Extensions copyExtensions(Extensions exts) {
+		Extensions newExts = BPELFactory.eINSTANCE.createExtensions();
+		if (exts.getDocumentation() != null) {
+			newExts.setDocumentation(FragmentDuplicator.copyDocumentation(exts.getDocumentation()));
+		}
+		newExts.setDocumentationElement(exts.getDocumentationElement());
+		newExts.setElement(exts.getElement());
+		newExts.setEnclosingDefinition(exts.getEnclosingDefinition());
+		for (Map.Entry<QName, Object> key : ((Map<QName, Object>) exts.getExtensionAttributes()).entrySet()) {
+			newExts.setExtensionAttribute(key.getKey(), key.getValue());
+		}
+		
+		return newExts;
+	}
+	
+	/**
+	 * Copy the given {@link Documentation}
+	 * 
+	 * @param doc The {@link Documentation} to be copied
+	 * @return The new {@link Documentation}
+	 */
+	@SuppressWarnings("unchecked")
+	public static Documentation copyDocumentation(Documentation doc) {
+		Documentation newDoc = BPELFactory.eINSTANCE.createDocumentation();
+		newDoc.setDocumentation(doc);
+		newDoc.setDocumentationElement(doc.getDocumentationElement());
+		newDoc.setElement(doc.getElement());
+		newDoc.setEnclosingDefinition(doc.getEnclosingDefinition());
+		for (Map.Entry<QName, Object> key : ((Map<QName, Object>) doc.getExtensionAttributes()).entrySet()) {
+			newDoc.setExtensionAttribute(key.getKey(), key.getValue());
+		}
+		newDoc.setLang(doc.getLang());
+		newDoc.setSource(doc.getSource());
+		newDoc.setValue(doc.getValue());
+		
+		return newDoc;
 	}
 	
 	public static ExtensionActivity copyExtensionActivity(ExtensionActivity act) {
@@ -926,7 +1059,6 @@ public class FragmentDuplicator {
 		
 		newMex.setName(mex.getName());
 		
-		// TODO: Test me please !!
 		if (mex.getDocumentationElement() != null) {
 			newMex.setDocumentationElement(mex.getDocumentationElement());
 		}
