@@ -10,10 +10,9 @@ import org.apache.log4j.Logger;
 import org.eclipse.bpel.model.Activity;
 import org.eclipse.bpel.model.Assign;
 import org.eclipse.bpel.model.BPELFactory;
-import org.eclipse.bpel.model.Catch;
-import org.eclipse.bpel.model.CatchAll;
 import org.eclipse.bpel.model.Compensate;
 import org.eclipse.bpel.model.CompensateScope;
+import org.eclipse.bpel.model.CompletionCondition;
 import org.eclipse.bpel.model.Condition;
 import org.eclipse.bpel.model.Copy;
 import org.eclipse.bpel.model.Correlation;
@@ -21,12 +20,10 @@ import org.eclipse.bpel.model.CorrelationSet;
 import org.eclipse.bpel.model.Correlations;
 import org.eclipse.bpel.model.Documentation;
 import org.eclipse.bpel.model.Empty;
-import org.eclipse.bpel.model.EventHandler;
 import org.eclipse.bpel.model.Exit;
 import org.eclipse.bpel.model.Expression;
 import org.eclipse.bpel.model.ExtensionActivity;
 import org.eclipse.bpel.model.Extensions;
-import org.eclipse.bpel.model.FaultHandler;
 import org.eclipse.bpel.model.Flow;
 import org.eclipse.bpel.model.ForEach;
 import org.eclipse.bpel.model.From;
@@ -35,12 +32,11 @@ import org.eclipse.bpel.model.Invoke;
 import org.eclipse.bpel.model.Link;
 import org.eclipse.bpel.model.Links;
 import org.eclipse.bpel.model.MessageExchange;
-import org.eclipse.bpel.model.OnAlarm;
-import org.eclipse.bpel.model.OnEvent;
 import org.eclipse.bpel.model.OpaqueActivity;
 import org.eclipse.bpel.model.PartnerLink;
 import org.eclipse.bpel.model.Pick;
 import org.eclipse.bpel.model.Process;
+import org.eclipse.bpel.model.Query;
 import org.eclipse.bpel.model.Receive;
 import org.eclipse.bpel.model.RepeatUntil;
 import org.eclipse.bpel.model.Reply;
@@ -168,8 +164,20 @@ public class FragmentDuplicator {
 		
 	}
 	
+	/**
+	 * Copy given {@link Empty}
+	 * 
+	 * @param act {@link Empty}
+	 * @return Copy of given {@link Empty}
+	 */
 	public static Empty copyEmpty(Empty act) {
-		return BPELFactory.eINSTANCE.createEmpty();
+		if (act == null) {
+			return null;
+		}
+		Empty newEmpty = BPELFactory.eINSTANCE.createEmpty();
+		FragmentDuplicator.copyStandardAttributes(act, newEmpty);
+		FragmentDuplicator.copyStandardElements(act, newEmpty);
+		return newEmpty;
 	}
 	
 	/**
@@ -313,6 +321,10 @@ public class FragmentDuplicator {
 		// 3. copies
 		newAssign = BPELFactory.eINSTANCE.createAssign();
 		FragmentDuplicator.copyStandardAttributes(act, newAssign);
+		
+		if (act.getValidate() != null) {
+			newAssign.setValidate(act.getValidate());
+		}
 		
 		List<Copy> copyList = act.getCopy();
 		for (Copy copy : copyList) {
@@ -473,16 +485,58 @@ public class FragmentDuplicator {
 		return newReceive;
 	}
 	
+	/**
+	 * Copy given {@link Wait}
+	 * 
+	 * @param act {@link Wait}
+	 * @return Copy of given {@link Wait}
+	 */
 	public static Wait copyWait(Wait act) {
+		if (act == null) {
+			return null;
+		}
+		Wait newWait = BPELFactory.eINSTANCE.createWait();
+		FragmentDuplicator.copyStandardAttributes(act, newWait);
+		FragmentDuplicator.copyStandardElements(act, newWait);
+		if (act.getFor() != null) {
+			newWait.setFor(FragmentDuplicator.copyExpression(act.getFor()));
+		}
+		if (act.getUntil() != null) {
+			newWait.setUntil(FragmentDuplicator.copyExpression(act.getUntil()));
+		}
 		throw new IllegalStateException("copyWait is not yet implemented");
 	}
 	
+	/**
+	 * Copy given {@link Throw}
+	 * 
+	 * @param act {@link Throw}
+	 * @return Copy of given {@link Throw}
+	 */
 	public static Throw copyThrow(Throw act) {
-		throw new IllegalStateException("copyThrow is not yet implemented");
+		if (act == null) {
+			return null;
+		}
+		Throw newThrow = BPELFactory.eINSTANCE.createThrow();
+		FragmentDuplicator.copyStandardAttributes(act, newThrow);
+		FragmentDuplicator.copyStandardElements(act, newThrow);
+		return newThrow;
 	}
 	
+	/**
+	 * Copy given {@link Exit}
+	 * 
+	 * @param act {@link Exit}
+	 * @return Copy of given {@link Exit}
+	 */
 	public static Exit copyExit(Exit act) {
-		throw new IllegalStateException("copyExit is not yet implemented");
+		if (act == null) {
+			return null;
+		}
+		Exit newExit = BPELFactory.eINSTANCE.createExit();
+		FragmentDuplicator.copyStandardAttributes(act, newExit);
+		FragmentDuplicator.copyStandardElements(act, newExit);
+		return newExit;
 	}
 	
 	/**
@@ -495,6 +549,9 @@ public class FragmentDuplicator {
 	 * @return The new flow activity
 	 */
 	public static Flow copyFlow(Flow act) {
+		if (act == null) {
+			return null;
+		}
 		// To copy flow :
 		// 1. standard attributes
 		// 2. links, needs to be initialised
@@ -519,6 +576,9 @@ public class FragmentDuplicator {
 	 *         copied.
 	 */
 	public static While copyWhile(While act) {
+		if (act == null) {
+			return null;
+		}
 		While newWhile = BPELFactory.eINSTANCE.createWhile();
 		
 		newWhile.setName(act.getName());
@@ -541,82 +601,6 @@ public class FragmentDuplicator {
 	}
 	
 	/**
-	 * Copy the {@link Catch} {@link FaultHandler}
-	 * 
-	 * @param oldCatch
-	 * @return
-	 */
-	public static Catch copyCatch(Catch oldCatch) {
-		Catch newCatch = BPELFactory.eINSTANCE.createCatch();
-		newCatch.setDocumentation(oldCatch.getDocumentation());
-		newCatch.setElement(oldCatch.getElement());
-		newCatch.setEnclosingDefinition(oldCatch.getEnclosingDefinition());
-		newCatch.setFaultElement(oldCatch.getFaultElement());
-		newCatch.setFaultMessageType(oldCatch.getFaultMessageType());
-		newCatch.setFaultName(oldCatch.getFaultName());
-		newCatch.setFaultVariable(oldCatch.getFaultVariable());
-		return newCatch;
-	}
-	
-	/**
-	 * Copy the {@link CatchAll} {@link FaultHandler}
-	 * 
-	 * @param oldCatchAll
-	 * @return
-	 */
-	public static CatchAll copyCatchAll(CatchAll oldCatchAll) {
-		CatchAll newCatchAll = BPELFactory.eINSTANCE.createCatchAll();
-		newCatchAll.setDocumentation(oldCatchAll.getDocumentation());
-		newCatchAll.setDocumentationElement(oldCatchAll.getDocumentationElement());
-		newCatchAll.setElement(oldCatchAll.getElement());
-		newCatchAll.setEnclosingDefinition(oldCatchAll.getEnclosingDefinition());
-		return newCatchAll;
-	}
-	
-	/**
-	 * Copy the {@link OnAlarm} {@link EventHandler}
-	 * 
-	 * @param oldOnAlarm
-	 * @return
-	 */
-	public static OnAlarm copyOnAlarm(OnAlarm oldOnAlarm) {
-		OnAlarm newAlarm = BPELFactory.eINSTANCE.createOnAlarm();
-		newAlarm.setDocumentation(oldOnAlarm.getDocumentation());
-		newAlarm.setDocumentationElement(oldOnAlarm.getDocumentationElement());
-		newAlarm.setElement(oldOnAlarm.getElement());
-		newAlarm.setEnclosingDefinition(oldOnAlarm.getEnclosingDefinition());
-		newAlarm.setFor(oldOnAlarm.getFor());
-		newAlarm.setRepeatEvery(oldOnAlarm.getRepeatEvery());
-		newAlarm.setUntil(oldOnAlarm.getUntil());
-		return newAlarm;
-	}
-	
-	/**
-	 * Copy the {@link OnEvent} {@link EventHandler}
-	 * 
-	 * @param oldOnEvent
-	 * @return
-	 */
-	public static OnEvent copyOnEvent(OnEvent oldOnEvent) {
-		OnEvent newEvent = BPELFactory.eINSTANCE.createOnEvent();
-		newEvent.setCorrelations(oldOnEvent.getCorrelations());
-		newEvent.setCorrelationSets(oldOnEvent.getCorrelationSets());
-		newEvent.setDocumentation(oldOnEvent.getDocumentation());
-		newEvent.setDocumentationElement(oldOnEvent.getDocumentationElement());
-		newEvent.setElement(oldOnEvent.getElement());
-		newEvent.setEnclosingDefinition(oldOnEvent.getEnclosingDefinition());
-		newEvent.setFromParts(oldOnEvent.getFromParts());
-		newEvent.setMessageExchange(oldOnEvent.getMessageExchange());
-		newEvent.setMessageType(oldOnEvent.getMessageType());
-		newEvent.setOperation(oldOnEvent.getOperation());
-		newEvent.setPartnerLink(oldOnEvent.getPartnerLink());
-		newEvent.setPortType(oldOnEvent.getPortType());
-		newEvent.setVariable(oldOnEvent.getVariable());
-		newEvent.setXSDElement(oldOnEvent.getXSDElement());
-		return newEvent;
-	}
-	
-	/**
 	 * <B>NOTE</B>: The OnMessage and OnAlarm Branches in Pick do not have name,
 	 * but they will contain a <b style=color:blue>wsu:id</b>, it must be copied
 	 * too.
@@ -628,22 +612,64 @@ public class FragmentDuplicator {
 		throw new IllegalStateException("copyPick is not yet implemented");
 	}
 	
+	/**
+	 * Copy the given {@link Compensate}
+	 * 
+	 * @param act {@link Compensate}
+	 * @return Copy of given {@link Compensate}
+	 */
 	public static Compensate copyCompensate(Compensate act) {
-		throw new IllegalStateException("copyCompensate is not yet implemented");
+		if (act == null) {
+			return null;
+		}
+		Compensate newCompensate = BPELFactory.eINSTANCE.createCompensate();
+		FragmentDuplicator.copyStandardAttributes(act, newCompensate);
+		FragmentDuplicator.copyStandardElements(act, newCompensate);
+		return newCompensate;
 	}
 	
+	/**
+	 * Copy the given {@link CompensateScope}
+	 * 
+	 * @param act {@link CompensateScope}
+	 * @return Copy of given {@link CompensateScope}
+	 */
 	public static CompensateScope copyCompensateScope(CompensateScope act) {
-		throw new IllegalStateException("copyCompensateScope is not yet implemented");
+		if (act == null) {
+			return null;
+		}
+		CompensateScope newCScope = BPELFactory.eINSTANCE.createCompensateScope();
+		FragmentDuplicator.copyStandardAttributes(act, newCScope);
+		FragmentDuplicator.copyStandardElements(act, newCScope);
+		if (act.getTarget() != null) {
+			newCScope.setTarget(act.getTarget());
+		}
+		return newCScope;
 	}
 	
+	/**
+	 * Copy the given {@link Rethrow}
+	 * 
+	 * @param act {@link Rethrow}
+	 * @return Copy of given {@link Rethrow}
+	 */
 	public static Rethrow copyRethrow(Rethrow act) {
-		throw new IllegalStateException("copyRethrow is not yet implemented");
+		if (act == null) {
+			return null;
+		}
+		Rethrow newRethrow = BPELFactory.eINSTANCE.createRethrow();
+		FragmentDuplicator.copyStandardAttributes(act, newRethrow);
+		FragmentDuplicator.copyStandardElements(act, newRethrow);
+		return newRethrow;
 	}
 	
 	public static OpaqueActivity copyOpaqueActivity(OpaqueActivity act) {
+		if (act == null) {
+			return null;
+		}
 		OpaqueActivity newAct = BPELFactory.eINSTANCE.createOpaqueActivity();
-		newAct.setName(act.getName());
 		FragmentDuplicator.copyStandardElements(act, newAct);
+		FragmentDuplicator.copyStandardAttributes(act, newAct);
 		return newAct;
 	}
 	
@@ -655,8 +681,25 @@ public class FragmentDuplicator {
 		throw new IllegalStateException("copyRepeatUntil is not yet implemented");
 	}
 	
+	/**
+	 * Copy given {@link Validate}
+	 * 
+	 * @param act {@link Validate}
+	 * @return Copy of given {@link Validate}
+	 */
 	public static Validate copyValidate(Validate act) {
-		throw new IllegalStateException("copyValidate is not yet implemented");
+		if (act == null) {
+			return null;
+		}
+		Validate newValidate = BPELFactory.eINSTANCE.createValidate();
+		FragmentDuplicator.copyStandardAttributes(act, newValidate);
+		FragmentDuplicator.copyStandardElements(act, newValidate);
+		if (act.getVariables() != null) {
+			for (Variable var : act.getVariables()) {
+				newValidate.getVariables().add(var);
+			}
+		}
+		return newValidate;
 	}
 	
 	/**
@@ -667,6 +710,9 @@ public class FragmentDuplicator {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Extensions copyExtensions(Extensions exts) {
+		if (exts == null) {
+			return null;
+		}
 		Extensions newExts = BPELFactory.eINSTANCE.createExtensions();
 		if (exts.getDocumentation() != null) {
 			newExts.setDocumentation(FragmentDuplicator.copyDocumentation(exts.getDocumentation()));
@@ -689,6 +735,9 @@ public class FragmentDuplicator {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Documentation copyDocumentation(Documentation doc) {
+		if (doc == null) {
+			return null;
+		}
 		Documentation newDoc = BPELFactory.eINSTANCE.createDocumentation();
 		newDoc.setDocumentation(doc);
 		newDoc.setDocumentationElement(doc.getDocumentationElement());
@@ -702,6 +751,21 @@ public class FragmentDuplicator {
 		newDoc.setValue(doc.getValue());
 		
 		return newDoc;
+	}
+	
+	/**
+	 * Copy given {@link CompletionCondition}
+	 * 
+	 * @param origCC {@link CompletionCondition}
+	 * @return Copy of given {@link CompletionCondition}
+	 */
+	public static CompletionCondition copyCompletionCondition(CompletionCondition origCC) {
+		if (origCC == null) {
+			return null;
+		}
+		CompletionCondition newCC = BPELFactory.eINSTANCE.createCompletionCondition();
+		newCC.setBranches(origCC.getBranches());
+		return newCC;
 	}
 	
 	public static ExtensionActivity copyExtensionActivity(ExtensionActivity act) {
@@ -784,8 +848,10 @@ public class FragmentDuplicator {
 			throw new NullPointerException("argument is null. origSources == null:" + (origSources == null) + " container == null:" + (container == null));
 		}
 		
-		Sources newSources = BPELFactory.eINSTANCE.createSources();
-		container.setSources(newSources);
+		if (container.getSources() == null) {
+			Sources newSources = BPELFactory.eINSTANCE.createSources();
+			container.setSources(newSources);
+		}
 		
 		for (Source origSource : origSources.getChildren()) {
 			
@@ -803,7 +869,6 @@ public class FragmentDuplicator {
 			// newSource.getActivity() to get the pre-set container, well, it
 			// will not work.
 			newSource.setActivity(container);
-			
 		}
 		
 	}
@@ -835,14 +900,15 @@ public class FragmentDuplicator {
 			throw new NullPointerException("argument is null. origTargets == null:" + (origTargets == null) + " container == null:" + (container == null));
 		}
 		
-		Targets newTargets = BPELFactory.eINSTANCE.createTargets();
+		if (container.getTargets() == null) {
+			container.setTargets(BPELFactory.eINSTANCE.createTargets());
+		}
+		Targets newTargets = container.getTargets();
 		
 		// a Targets contains joinCondition AND a list of target
 		if (origTargets.getJoinCondition() != null) {
 			newTargets.setJoinCondition(FragmentDuplicator.copyCondition(origTargets.getJoinCondition()));
 		}
-		
-		container.setTargets(newTargets);
 		
 		for (Target origTarget : origTargets.getChildren()) {
 			// a target contains link and the container activity
@@ -888,6 +954,12 @@ public class FragmentDuplicator {
 		return newLink;
 	}
 	
+	/**
+	 * Copy given {@link Copy}
+	 * 
+	 * @param copy {@link Copy}
+	 * @return Copy of given {@link Copy}
+	 */
 	public static Copy copyCopy(Copy copy) {
 		
 		if (copy == null) {
@@ -902,16 +974,27 @@ public class FragmentDuplicator {
 		
 	}
 	
+	/**
+	 * Copy given {@link Condition}
+	 * 
+	 * @param condition {@link Condition}
+	 * @return Copy of given {@link Condition}
+	 */
 	public static Condition copyCondition(Condition condition) {
 		if (condition == null) {
 			throw new NullPointerException("argument is null.");
 		}
-		
 		Condition newCondition = BPELFactoryImpl.eINSTANCE.createCondition();
 		newCondition.setBody(condition.getBody());
 		return newCondition;
 	}
 	
+	/**
+	 * Copy given {@link From}
+	 * 
+	 * @param from {@link From}
+	 * @return Copy of given {@link From}
+	 */
 	public static From copyFrom(From from) {
 		
 		if (from == null) {
@@ -950,6 +1033,12 @@ public class FragmentDuplicator {
 		return newFrom;
 	}
 	
+	/**
+	 * Copy given {@link To}
+	 * 
+	 * @param to {@link To}
+	 * @return Copy of given {@link To}
+	 */
 	public static To copyTo(To to) {
 		
 		if (to == null) {
@@ -979,6 +1068,12 @@ public class FragmentDuplicator {
 		return newTo;
 	}
 	
+	/**
+	 * Copy given {@link Query}
+	 * 
+	 * @param query {@link Query}
+	 * @return Copy of given {@link Query}
+	 */
 	public static org.eclipse.bpel.model.Query copyQuery(org.eclipse.bpel.model.Query query) {
 		if (query == null) {
 			throw new NullPointerException("argument is null.");
@@ -997,6 +1092,12 @@ public class FragmentDuplicator {
 		
 	}
 	
+	/**
+	 * Copy given {@link Expression}
+	 * 
+	 * @param expression {@link Expression}
+	 * @return Copy of given {@link Expression}
+	 */
 	public static Expression copyExpression(Expression expression) {
 		
 		if (expression == null) {
@@ -1033,6 +1134,7 @@ public class FragmentDuplicator {
 		QName newQName = FragmentDuplicator.copyQName(message.getQName());
 		newMessage.setQName(newQName);
 		
+		@SuppressWarnings("unchecked")
 		List<Part> parts = message.getEParts();
 		
 		for (Part part : parts) {
@@ -1051,6 +1153,11 @@ public class FragmentDuplicator {
 	 */
 	@SuppressWarnings("unchecked")
 	public static MessageExchange copyMessageExchange(MessageExchange mex) {
+		
+		if (mex == null) {
+			return null;
+		}
+		
 		MessageExchange newMex = BPELFactory.eINSTANCE.createMessageExchange();
 		
 		if (mex.getDocumentation() != null) {
@@ -1113,6 +1220,7 @@ public class FragmentDuplicator {
 	 * @param portType
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static PortType copyPortType(PortType portType) {
 		
 		if (portType == null) {
@@ -1123,11 +1231,11 @@ public class FragmentDuplicator {
 		
 		newPortType.setQName(portType.getQName());
 		
-		List operations = portType.getOperations();
-		Iterator iterator = operations.iterator();
+		List<Operation> operations = portType.getOperations();
+		Iterator<Operation> iterator = operations.iterator();
 		
 		while (iterator.hasNext()) {
-			Operation origOperation = (Operation) iterator.next();
+			Operation origOperation = iterator.next();
 			Operation newOperation = FragmentDuplicator.copyOperation(origOperation);
 			newPortType.getOperations().add(newOperation);
 		}
@@ -1214,7 +1322,18 @@ public class FragmentDuplicator {
 		return newOperation;
 	}
 	
+	/**
+	 * Copy given {@link Input}
+	 * 
+	 * @param input {@link Input}
+	 * @return Copy of given {@link Input}
+	 */
 	public static Input copyInput(Input input) {
+		
+		if (input == null) {
+			return null;
+		}
+		
 		Input newInput = WSDLFactory.eINSTANCE.createInput();
 		if (input.getName() != null) {
 			newInput.setName(input.getName());
@@ -1225,7 +1344,18 @@ public class FragmentDuplicator {
 		return newInput;
 	}
 	
+	/**
+	 * Copy given {@link Output}
+	 * 
+	 * @param output {@link Output}
+	 * @return Copy of given {@link Output}
+	 */
 	public static Output copyOutput(Output output) {
+		
+		if (output == null) {
+			return null;
+		}
+		
 		Output newOutput = WSDLFactory.eINSTANCE.createOutput();
 		if (output.getName() != null) {
 			newOutput.setName(output.getName());
@@ -1321,6 +1451,10 @@ public class FragmentDuplicator {
 	 */
 	public static Role copyRole(Role origRole) {
 		
+		if (origRole == null) {
+			return null;
+		}
+		
 		Role newRole = PartnerlinktypeFactory.eINSTANCE.createRole();
 		
 		newRole.setName(origRole.getName());
@@ -1396,6 +1530,12 @@ public class FragmentDuplicator {
 		return newProperty;
 	}
 	
+	/**
+	 * Copy given {@link QName}
+	 * 
+	 * @param qName {@link QName}
+	 * @return Copy of given {@link QName}
+	 */
 	public static QName copyQName(QName qName) {
 		
 		if (qName == null) {
@@ -1469,5 +1609,4 @@ public class FragmentDuplicator {
 		
 		return newVariable;
 	}
-	
 }

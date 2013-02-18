@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.wsdl.WSDLException;
-
 import org.eclipse.bpel.model.Activity;
 import org.eclipse.bpel.model.BPELPlugin;
 import org.eclipse.bpel.model.CorrelationSet;
@@ -29,7 +27,6 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.wst.wsdl.Definition;
 import org.eclipse.wst.wsdl.internal.util.WSDLResourceFactoryImpl;
 import org.eclipse.xsd.util.XSDResourceFactoryImpl;
 
@@ -135,7 +132,7 @@ public class MyBPELUtils extends BPELUtils {
 	public static Link resolveLink(Flow flow, String linkName) {
 		
 		if ((flow == null) || (linkName == null)) {
-			throw new NullPointerException();
+			throw new NullPointerException("(flow == null) : " + (flow == null) + " , (linkName == null)" + (linkName == null));
 		}
 		
 		for (Link link : flow.getLinks().getChildren()) {
