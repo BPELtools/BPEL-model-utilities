@@ -27,6 +27,8 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl;
 import org.eclipse.wst.wsdl.internal.util.WSDLResourceFactoryImpl;
 import org.eclipse.xsd.util.XSDResourceFactoryImpl;
 
@@ -329,6 +331,22 @@ public class MyBPELUtils extends BPELUtils {
 		argsMap.put("", "");
 		resource.save(System.out, argsMap);
 	}
+
+	/**
+	 * Prints the given {@link EObject} to console.
+	 * 
+	 * @param eObject
+	 *            Object that should be printed
+	 */
+	public static void print(EObject eObject) {
+		Resource resource = new XMLResourceImpl();
+		resource.getContents().add(EcoreUtil.copy(eObject));
+		try {
+			resource.save(System.out, null);
+		} catch (IOException e) {
+		}
+	}
+
 	
 	/**
 	 * Look up the correlation set in the BPEL process with the name given
