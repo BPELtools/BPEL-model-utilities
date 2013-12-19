@@ -1582,7 +1582,8 @@ public class FragmentDuplicator {
 		// messageType
 		Message origMsg = variable.getMessageType();
 		if (origMsg != null) {
-			if (origMsg instanceof MessageProxy) {
+			// CHECK if variableElement is null
+			if (origMsg instanceof MessageProxy && variableElement != null) {
 				QName qName = BPELUtils.createAttributeValue(variableElement, "messageType");
 				Message messageType = new MessageProxy(((MessageProxy) origMsg).eProxyURI(), qName);
 				newVariable.setMessageType(messageType);
