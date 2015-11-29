@@ -50,7 +50,7 @@ public class ZipUtilTest {
 	public void testZip() throws IOException {
 		File file = new File(".");
 		ZipUtilTest.outputDirPath = file.getAbsolutePath() + File.separator + "files" + File.separator + "ziptest";
-		ZipUtilTest.destDir = "D:\\Arbeit\\Diplom\\tmpout\\bpel4chor";
+		ZipUtilTest.destDir = "C:\\temp\\bpel4chor";
 		ZipUtilTest.destZipName = "ZipTest" + Calendar.getInstance().getTimeInMillis() + ".zip";
 		String zipfilePath = ZipUtil.zip(ZipUtilTest.outputDirPath, ZipUtilTest.destDir, ZipUtilTest.destZipName);
 		
@@ -87,7 +87,7 @@ public class ZipUtilTest {
 		
 		File file = new File(".");
 		zipFileAbsPath = file.getAbsolutePath() + File.separator + "files" + File.separator + "OrderingProcessSimple1Choreography.zip";
-		destDir = "D:\\Arbeit\\Diplom\\tmpout\\bpel4chor\\UnZipTest" + Calendar.getInstance().getTimeInMillis();
+		destDir = "C:\\temp\\bpel4chor\\UnZipTest" + Calendar.getInstance().getTimeInMillis();
 		ZipUtil.unizp(destDir, zipFileAbsPath);
 		
 		File unzipDir = new File(destDir);
